@@ -12,7 +12,9 @@
 +												+	
 +++++++++++++++++++++++++++++++++++++++++++++++++
 
-// This is the version 2.0
+
+// This is version 3.0
+
 
 +
 Image recommandation
@@ -33,14 +35,14 @@ getDateAndTime(year, month, dayofWeek, dayofMonth, hour, minute, second, msec);
 
 	min_detected =100; 		// minimal area of detectede particles in pixels
 
-	ce = 1.2; 				// circle extension
+	circle_extension = 1.2; 				// circle extension
 
-	cirularity_check = 0.75;	// minimal possible circularity
+	cirularity_check = 0.85;	// minimal possible circularity
 	
 	file_extension = "tif"; // extension of processed files (NO DOT!)
 
 
-	alpha_step = 12; 		// sampling angle step
+	alpha_step = 6; 		// sampling angle step
 
 	setBatchMode(false);	// activate/deactivate BatchMode
 //----------------------------------------------------------------------------------------------------------
@@ -64,8 +66,8 @@ dir2 = dir1 + "ROI_Sets\\" ;
 File.makeDirectory(dir2);
 //----------------------------------------------------------------------------------------------------------
 
-title0 = "membrane";
-title1 = "StxB";
+title0 = "6_His_Tag_Al_488";
+title1 = "ASR_PE";
 title2 = "LecA";
 
 
@@ -113,28 +115,121 @@ background_noise_arr = newArray (channel_counter);
 //----------------Select channel for GUV detection and correction method------------------------------------
 //----------------------------------------------------------------------------------------------------------
 		
-		  html = "<html><font size=-1><b>Circular check:</b> Non-phase separated GUVs<br> <b>GUV stitching:</b>  Phase separated GUVs <br></font>";
+		html = "<html><font size=-1><b>Circular check:</b> Non-phase separated GUVs<br> <b>GUV stitching:</b>  Phase separated GUVs <br></font>";
 		Dialog.create("GUV detection");
-		 Dialog.addChoice("Channel used for Segmentation:", newArray(title0, title1, title2,"Sum all channels"));
-	     	 Dialog.addRadioButtonGroup("Segmentation mode",newArray("Circular check (Non-phase separated)","GUV stitching (Phase separated)"), 2, 1,"Circular check (Non-phase separated)");
+		Dialog.addChoice("Channel used for Segmentation:", newArray(title0, title1, title2,"Sum all channels"));
+	     	 Dialog.addRadioButtonGroup("Segmentation mode",newArray("GUV detection by contour (Non-phase separated)","GUV stitching (Phase separated)", "GUV detection by lumen (Non-phase separated)"), 3, 1,"GUV stitching (Phase separated)");
 	     	 Dialog.addHelp(html);
+
+	    Dialog.addNumber("Minimal GUV radius (micron):", 1);
+	    Dialog.addCheckbox("Circular Profile", false);
 		Dialog.show();
+
+		
 	
 		channel = Dialog.getChoice();
 		 if (channel=="Sum all channels")
 		   channel="Overlay";
 	 	SegMode= Dialog.getRadioButton();
 
-if (SegMode == "Circular check (Non-phase separated)") {
+	 	R_GUV_min = Dialog.getNumber();
+	 	circular_profile_flag = Dialog.getCheckbox();
+
+if (SegMode == "GUV detection by contour (Non-phase separated)") {
 	circ_check = true;
 	GUV_stitch = false;
+	GUV_lumen = false;
 }
 
 if (SegMode == "GUV stitching (Phase separated)") {
 	circ_check = false;
 	GUV_stitch = true;
+	GUV_lumen = false;
+}
+
+if (SegMode == "GUV detection by lumen (Non-phase separated)") {
+	circ_check = true;
+	GUV_stitch = false;
+	GUV_lumen = true;
 }
 //----------------------------------------------------------------------------------------------------------
+//---------------------------------------------Open summary files-------------------------------------------
+//----------------------------------------------------------------------------------------------------------
+if (ch1 ==true){
+	file_ch1=File.open(dir1+ File.separator+"Summary_" + title0 + ".xls");
+	
+	print(file_ch1,"name"+"\t\t"+  "<"+title0+">" +"\t\t" + "<"+title0+">/background" +"\t\t" + "background");
+	
+	File.close(file_ch1);
+}
+
+if (ch2 ==true){
+	file_ch2=File.open(dir1+ File.separator+"Summary_" + title1 + ".xls");
+	
+	print(file_ch2,"name"+"\t\t"+  "<"+title1+">" +"\t\t" + "<"+title1+">/background" +"\t\t" + "background");
+	
+	File.close(file_ch2);
+}
+
+if (ch3 ==true){
+	file_ch3=File.open(dir1+File.separator+"Summary_" + title2 + ".xls");
+	
+	print(file_ch3,"name"+"\t\t"+  "<"+title2+">" +"\t\t" + "<"+title2+">/background" +"\t\t" + "background");
+	
+	File.close(file_ch3);
+}
+
+
+
+
+//----------------Lo/Ld output in files--------------------------------------------------------------------
+
+if (GUV_stitch == true){
+
+	if (ch1 ==true){
+
+	
+
+		file_LoLd_ch1=File.open(dir1+File.separator+"Summary_Ld_Lo_" + title0 + ".xls");
+	
+		print(file_LoLd_ch1,"name"+"\t\t"+  "<"+title0+"_Ld>" +"\t\t" + "<"+title0+"_Lo>" +"\t\t" + "background");
+	
+		File.close(file_LoLd_ch1);
+	}
+
+	if (ch2 ==true){
+
+	
+
+		file_LoLd_ch2=File.open(dir1+File.separator+"Summary_Ld_Lo_" + title1 + ".xls");
+	
+		print(file_LoLd_ch2,"name"+"\t\t"+  "<"+title1+"_Ld>" +"\t\t" + "<"+title1+"_Lo>" +"\t\t" + "background");
+	
+		File.close(file_LoLd_ch2);
+	}
+	
+	
+	
+	if (ch3 ==true){
+
+		file_LoLd_ch3=File.open(dir1+File.separator+"Summary_Ld_Lo_" + title2 + ".xls");
+	
+		print(file_LoLd_ch3,"name"+"\t\t"+  "<"+title2+"_Ld>" +"\t\t" + "<"+title2+"_Lo>" +"\t\t" + "background");
+	
+	
+		File.close(file_LoLd_ch3);
+	}
+	
+}
+
+
+
+
+
+//----------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------
+
+
 
 //----------------Create Parameter_log.txt and save parameters----------------------------------------------
 //----------------------------------------------------------------------------------------------------------
@@ -149,7 +244,7 @@ print (xl2, "Thresholding for ROIs:" + " tc = " + ttt);
 print (xl2, "Method for GUV detection: " + "Fit_Circle");
 if (circ_check == true) print (xl2, "Circular check");
 if (GUV_stitch == true) print (xl2, "GUV stitching");
-print (xl2, "Circle extension coefficient: " + "ce = " + ce);
+print (xl2, "Circle extension coefficient: " + "ce = " + circle_extension);
 print (xl2," ");
 print (xl2, "\t\t" + "Calculation paramters");
 print (xl2," ");
@@ -186,7 +281,7 @@ summary_Ld_ch3 = newArray;
 
 //----------------------------------------------------------------------------------------------------------
 
-//----------------Check data folder for suitabke files------------------------------------------------------
+//----------------Check data folder for suitable files------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------
 file_counter = 0;
 for (number_of_file = 0; number_of_file<list.length; number_of_file++){
@@ -285,8 +380,7 @@ if (file_counter == 0){
 		setAutoThreshold("Default dark");
 		setThreshold(bottom, top);
 
-		run("Set Measurements...", "area centroid bounding shape redirect=None decimal=3");
-		run("Analyze Particles...", "size=min_detected-Infinity pixel show=Masks display exclude clear  add in_situ");
+		
 
 
 		//------Creating background images for each color channel
@@ -304,30 +398,78 @@ if (file_counter == 0){
 		
 
 		//Smoothing and skeletonisation
-		selectWindow ("mask");
-		run("Select None");
-		for (i=0; i<10; i++)
-			run("Median...","radius=2");
-			/*run("Smooth");
-		setOption("BlackBackground", false);
-		run("Make Binary");*/
-		run("Skeletonize");
+		if (GUV_lumen == false){
+			selectWindow ("mask");
+			run("Set Measurements...", "area centroid bounding shape redirect=None decimal=3");
+			run("Analyze Particles...", "size=min_detected-Infinity pixel show=Masks display exclude clear  add in_situ");
+	
+			
+	
+			
+			run("Select None");
+			for (i=0; i<10; i++)
+				run("Median...","radius=2");
+				/*run("Smooth");
+			setOption("BlackBackground", false);
+			run("Make Binary");*/
+			run("Skeletonize");
+	
+	
+			if (roiManager("count") > 0){
+					roiManager("Delete");
+				}
+			run("Clear Results");
+	
+			run("Set Measurements...", "area centroid bounding shape redirect=None decimal=3");
+			run("Analyze Particles...", "size=5-Infinity pixel show=Masks display exclude clear  add in_situ");
+			GUVs_total = nResults;
+			
+		}
 
+		
 
-		if (roiManager("count") > 0){
-				roiManager("Delete");
-			}
-		run("Clear Results");
+		if (GUV_lumen == true){
+			selectWindow("mask");
+			
+		
+			
+		
+		
+			setOption("BlackBackground", false);
+			run("Make Binary");
+		
+			run("Invert LUT");
+		
+			run("Set Measurements...", "area centroid bounding shape redirect=None decimal=3");
+			run("Analyze Particles...", "size=20-Infinity pixel display exclude clear add in_situ");
 
-		run("Set Measurements...", "area centroid bounding shape redirect=None decimal=3");
-		run("Analyze Particles...", "size=5-Infinity pixel show=Masks display exclude clear  add in_situ");
-		GUVs_total = nResults;
+			GUVs_total = nResults;
+			print (GUVs_total);
+		}
+		
 		
 		//-----------------Circularity check and filtering
 		if (circ_check == true){
 			for (number_of_GUV = 0; number_of_GUV < GUVs_total; number_of_GUV ++){
 				round123 = getResult("Round",number_of_GUV);
+				
 				if ( round123 < cirularity_check){
+					IJ.deleteRows(number_of_GUV,number_of_GUV) ;
+					roiManager("Select", number_of_GUV);
+					roiManager("Delete");
+					GUVs_total = GUVs_total - 1;
+					number_of_GUV = -1;
+				}
+			}
+		}
+
+		//-----------------Deleting non-phase separated GUVs
+
+		if (circ_check == false && GUV_stitch == true){
+			for (number_of_GUV = 0; number_of_GUV < GUVs_total; number_of_GUV ++){
+				round123 = getResult("Round",number_of_GUV);
+				
+				if ( round123 > cirularity_check){
 					IJ.deleteRows(number_of_GUV,number_of_GUV) ;
 					roiManager("Select", number_of_GUV);
 					roiManager("Delete");
@@ -360,7 +502,15 @@ if (file_counter == 0){
 			height = getResult("Height", 0);
 
 			R_array[i] = (width+height)/4;
+
+
+			///------------------------------------------------
+				//R_array[i] = 2.5;
+
+			///-----------------------------------------------
 		}
+
+		
 
 		//------Phase separated GUV stitching
 		kk = 0;
@@ -368,6 +518,8 @@ if (file_counter == 0){
 		if (GUV_stitch == true){
 			GUV_counter = 0;
 
+		
+		//for (jjjj =0; jjjj < GUVs_total; jjjj++){
 		for (i=0; i<GUVs_total; i++){
 			q=newArray(1);
 			q[0]=i;
@@ -424,7 +576,9 @@ if (file_counter == 0){
 				i=-1;
 
 		}
-
+		
+		
+		
 
 		R_array1 = newArray ( GUV_counter );
 		x_c_array1 = newArray ( GUV_counter );
@@ -433,19 +587,22 @@ if (file_counter == 0){
 		for (i=0; i< GUV_counter; i++){
 			
 			run("Select None");
+			
+
+
+
 			roiManager("Select", i);
+			run("Points from Mask");
+			roiManager("Add");
+			roiManager("Select", newArray(i,roiManager("count")-1));
+			roiManager("AND");
+			run("Fit Circle");
 
-
-			if (stitched_array [i] == 1){
-			points = get_all_points_in_a_ROI();
-
-			x_points = get_x(points);
-
-			y_points = get_y(points); }
 			
-			if (stitched_array [i] == 0) {getSelectionCoordinates(x_points, y_points);}
 			
-			makeSelection("point",x_points, y_points);
+
+
+			
 			run("Fit Circle");
 			run("Clear Results");
 
@@ -461,6 +618,11 @@ if (file_counter == 0){
 			height = getResult("Height", 0);
 
 			R_array1[i] = (width+height)/4;
+			roiManager("Deselect");
+			roiManager("Select", roiManager("count")-1);
+			
+			roiManager("Delete");
+			
 		}
 
 				x_c_array = x_c_array1;
@@ -468,14 +630,66 @@ if (file_counter == 0){
 				R_array = R_array1;
 
 				
-
-				GUVs_total = GUV_counter;
+		GUVs_total = GUV_counter;
+		
+				
+				//jjjj++;
+		//}
+				
+		
 			
 		} 
 
+
+
+		
+		//---------------Removing of too small GUVs
+
+		
+
+		
+		for (number_of_GUV = 0; number_of_GUV < GUVs_total; number_of_GUV ++){
+
+
+			
+			
+
+			
+			
+			if (R_array[number_of_GUV] < R_GUV_min){
+				
+				
+				
+				
+				R_array = Array.deleteIndex(R_array, number_of_GUV);
+				x_c_array = Array.deleteIndex(x_c_array, number_of_GUV);
+				y_c_array = Array.deleteIndex(y_c_array, number_of_GUV);
+
+				roiManager("Select", number_of_GUV);
+				roiManager("Delete");
+				
+				GUVs_total = GUVs_total - 1;
+				number_of_GUV = -1;
+			}
+		}
+		
 	
 
 		//-----------Marked GUVs image saving
+
+		/*roiManager("Deselect");
+		roiManager("Delete");
+		
+
+		for (i=0; i<GUVs_total; i++){
+
+			
+			makeOval ((x_c_array[i] - R_array[i])/pixelWidth, (y_c_array[i] - R_array[i])/pixelWidth, 2*R_array[i]/pixelWidth, 2*R_array[i]/pixelWidth);
+			roiManager("Add");
+			
+		}*/
+		
+		print ("Number of particles: " + GUVs_total);
 
 		file_marked = dir1 + File.separator + list[number_of_file];
 		
@@ -484,6 +698,7 @@ if (file_counter == 0){
 		run("Duplicate...", "title=raw_data_saving duplicate frames=1");
 		roiManager("Show None");
 		roiManager("Show All");
+		
 
 		saveAs("Tiff", file_marked);
 		close();
@@ -516,7 +731,7 @@ if (file_counter == 0){
 			selectWindow(name_back);
 
 			for(i=0; i<GUVs_total; i++){
-				makeOval ((x_c_array[i] - R_array[i]*ce)/pixelWidth, (y_c_array[i] - R_array[i]*ce)/pixelWidth, 2*R_array[i]*ce/pixelWidth, 2*R_array[i]*ce/pixelWidth);
+				makeOval ((x_c_array[i] - R_array[i]*circle_extension)/pixelWidth, (y_c_array[i] - R_array[i]*circle_extension)/pixelWidth, 2*R_array[i]*circle_extension/pixelWidth, 2*R_array[i]*circle_extension/pixelWidth);
 				run("Clear", "slice");
 				run("Select None");
 			}
@@ -543,6 +758,7 @@ if (file_counter == 0){
 		
 		}
 
+		
 		
 	
 		
@@ -867,6 +1083,28 @@ if (GUV_stitch == true){
 	}
 
 
+
+
+	if (ch1 ==true){
+
+		File.append(summary_ch1_Ld_unit,dir1+File.separator+"Summary_Ld_Lo_" + title0 + ".xls");
+
+	}
+
+	if (ch2 ==true){
+
+		File.append(summary_ch2_Ld_unit,dir1+File.separator+"Summary_Ld_Lo_" + title1 + ".xls");
+
+	}
+	
+	
+	
+	if (ch3 ==true){
+
+		File.append(summary_ch3_Ld_unit,dir1+File.separator+"Summary_Ld_Lo_" + title2 + ".xls");
+
+	}
+	
 	
 		
 }
@@ -897,243 +1135,276 @@ roiManager("Save", roiset);
 				setForegroundColor(255, 255, 255);
 				run("Draw", "slice");
 				run("Select None");
-
+				
 				run("Options...", "iterations=1 count=1");
 				run("Erode");
 				run("Erode");
 				run("Erode");
 				
-				roiManager("Deselect");
-				roiManager("Delete");
-				run("Invert LUT");
-
-				run("Analyze Particles...", "size=5-Infinity show=Masks exclude add");
-				run("Invert LUT");
-				run("Analyze Particles...", "size=5-Infinity show=Masks exclude add");
-				close();
-				close();
-				roiManager("Select", newArray(0,1));
-				close();
-				roiManager("XOR");
-				roiManager("Add");
-				roiManager("Delete");
-				roiManager("Select", 0);
-				roiManager("Select", 0);
-				roiManager("Rename", "Ring");
-			//End of ring selection
-
-			selectWindow("mask");
-			run("Select None");
-			/*roiManager("Deselect");
-			roiManager("Delete");*/
-
-			x_c = x_c_array [number_of_GUV];
-			y_c = y_c_array [number_of_GUV];
-			R = R_array [number_of_GUV] * ce;
-
-			r_c=1;
-			for (alpha = 0; alpha<=360; alpha=alpha + alpha_step){
-
-				x_1 = x_c + R*sin(alpha*PI/180);
-				y_1 = y_c + R*cos(alpha*PI/180);
-
-				x_2 = x_c + R*sin((alpha + alpha_step)*PI/180);
-				y_2 = y_c + R*cos((alpha + alpha_step)*PI/180);
-
-				makePolygon(x_c/pixelWidth,y_c/pixelWidth,x_1/pixelWidth,y_1/pixelWidth,x_2/pixelWidth,y_2/pixelWidth);
-
-				roiManager("Add");
-				roiManager("Select", newArray(0,r_c));
-				
-				roiManager("AND");
-				roiManager("Add");
-				roiManager("Deselect");
-				roiManager("Select", r_c);
-				roiManager("Delete");
-
-				r_c = r_c + 1;
-				
-
-		
-			}
-		
-
-		run("Clear Results");
-
-
-		nROIs = roiManager("Count")-1;
-
-		chan = 0;
-		//-----------------channel 1
-		
-		if (ch1 == true){
-			selectWindow (title0);
-			roiManager("Select", 0);
-			
-			run("Set Measurements...", "mean min integrated redirect=None decimal=3");
-			run("Measure");
-			ch1_average = getResult("Mean", 0);
-
-			ch1_average_corr = ch1_average/background[chan] - 1;
-
-			if (ch1_average_corr < 0 || ch1_average_corr != ch1_average_corr) ch1_average_corr = 0;
-
-			run("Clear Results");
-
-			for (i=0; i<nROIs; i++){
- 
-				roiManager("Select", i+1);
-				
-				roiManager("Rename", i*alpha_step);
-
-				run("Set Measurements...", "mean min redirect=None decimal=3");
-				run("Measure");
-
-				Max_intensity_membrane [i] = getResult("Mean", i)/background[chan] - 1;
-
-				if (Max_intensity_membrane [i]!=Max_intensity_membrane [i] ){
-					Max_intensity_membrane [i] = 0;
+				if (roiManager("count") > 0){
+					roiManager("Deselect");
+					roiManager("Delete");
 				}
-			
-				Angle_array [i] = i*alpha_step;
-			}
-
-
-			run("Clear Results");
-			chan ++;
-		}
-//-----------channel 2----------------------
-
-		if (ch2 == true){
-			selectWindow (title1);
-			roiManager("Select", 0);
-			
-			run("Set Measurements...", "mean min integrated redirect=None decimal=3");
-			run("Measure");
-			ch2_average = getResult("Mean", 0);
-			
-			ch2_average_corr = ch2_average/background[chan] - 1;
-
-			if (ch2_average_corr < 0 || ch2_average_corr != ch2_average_corr) ch2_average_corr = 0;
-			
-			run("Clear Results");
-
-			for (i=0; i<nROIs; i++){
- 
-				roiManager("Select", i+1);
-				roiManager("Rename", i*alpha_step);
-
-				run("Set Measurements...", "mean min redirect=None decimal=3");
-				run("Measure");
-
-			
-
-				Max_intensity_protein_1 [i] = getResult("Mean", i)/background[chan] - 1;
-					if (Max_intensity_protein_1 [i]!=Max_intensity_protein_1 [i]){
-						Max_intensity_protein_1 [i] = 0;
-					}
 				
-				Angle_array [i] = i*alpha_step;
-			}
+				run("Invert LUT");
+				
 
+				run("Analyze Particles...", "size=5-Infinity show=Masks exclude add");
+				run("Invert LUT");
+				run("Analyze Particles...", "size=5-Infinity show=Masks exclude add");
+				close();
+				close();
 
-			run("Clear Results");
-			chan ++;
-		}
-		
-		//-----------channel 3----------------------
+				if (roiManager("count") == 2){
+					
+				
+					roiManager("Select", newArray(0,1));
+					close();
+					roiManager("XOR");
+					roiManager("Add");
+					roiManager("Delete");
+					roiManager("Select", 0);
+					roiManager("Select", 0);
+					roiManager("Rename", "Ring");
+				//End of ring selection
 	
-		if (ch3 == true){
-			selectWindow (title2);
-			roiManager("Select", 0);
-			
-			
-			run("Set Measurements...", "mean min integrated redirect=None decimal=3");
-			run("Measure");
-			ch3_average = getResult("Mean", 0);
-			
-
-			ch3_average_corr = ch3_average/background[chan] - 1;
-
-			if (ch3_average_corr < 0 || ch3_average_corr != ch3_average_corr) ch3_average_corr = 0;
-			
-			run("Clear Results");
-
-			for (i=0; i<nROIs; i++){
- 
-				roiManager("Select", i+1);
+				selectWindow("mask");
+				run("Select None");
+				/*roiManager("Deselect");
+				roiManager("Delete");*/
+	
+				x_c = x_c_array [number_of_GUV];
+				y_c = y_c_array [number_of_GUV];
+				R = R_array [number_of_GUV] * circle_extension;
+	
+				r_c=1;
+				if (circular_profile_flag == true){
+					
 				
-				roiManager("Rename", i*alpha_step);
-
-				run("Set Measurements...", "mean min redirect=None decimal=3");
-				run("Measure");
-
-			
-
-				Max_intensity_protein_2 [i] = getResult("Mean", i)/background[chan] - 1;
-					if (Max_intensity_protein_2 [i]!=Max_intensity_protein_2 [i]){
-						Max_intensity_protein_2 [i] = 0;
+					for (alpha = 0; alpha<=360; alpha=alpha + alpha_step){
+		
+						x_1 = x_c + R*sin(alpha*PI/180);
+						y_1 = y_c + R*cos(alpha*PI/180);
+		
+						x_2 = x_c + R*sin((alpha + alpha_step)*PI/180);
+						y_2 = y_c + R*cos((alpha + alpha_step)*PI/180);
+		
+						makePolygon(x_c/pixelWidth,y_c/pixelWidth,x_1/pixelWidth,y_1/pixelWidth,x_2/pixelWidth,y_2/pixelWidth);
+		
+						roiManager("Add");
+						roiManager("Select", newArray(0,r_c));
+						
+						roiManager("AND");
+						roiManager("Add");
+						roiManager("Deselect");
+						roiManager("Select", r_c);
+						roiManager("Delete");
+		
+						r_c = r_c + 1;
+						
+		
+				
 					}
 				
-				Angle_array [i] = i*alpha_step;
+		
+					run("Clear Results");
+		
+		
+					nROIs = roiManager("Count")-1;
+					}
+	
+			chan = 0;
+			//-----------------channel 1
+			
+			if (ch1 == true){
+				selectWindow (title0);
+				roiManager("Select", 0);
+				
+				run("Set Measurements...", "mean min integrated redirect=None decimal=3");
+				run("Measure");
+				ch1_average = getResult("Mean", 0);
+	
+				ch1_average_corr = ch1_average/background[chan] - 1;
+	
+				if (ch1_average_corr < 0 || ch1_average_corr != ch1_average_corr) ch1_average_corr = 0;
+	
+				run("Clear Results");
+				if (circular_profile_flag == true){
+	
+					for (i=0; i<nROIs; i++){
+		 
+						roiManager("Select", i+1);
+						
+						roiManager("Rename", i*alpha_step);
+		
+						run("Set Measurements...", "mean min redirect=None decimal=3");
+						run("Measure");
+		
+						Max_intensity_membrane [i] = getResult("Mean", i)/background[chan] - 1;
+		
+						if (Max_intensity_membrane [i]!=Max_intensity_membrane [i] ){
+							Max_intensity_membrane [i] = 0;
+						}
+					
+						Angle_array [i] = i*alpha_step;
+					}
+				}
+	
+	
+				run("Clear Results");
+				chan ++;
 			}
-
-
-			run("Clear Results");
-			chan ++;
-		}		
+	//-----------channel 2----------------------
+	
+			if (ch2 == true){
+				selectWindow (title1);
+				roiManager("Select", 0);
+				
+				run("Set Measurements...", "mean min integrated redirect=None decimal=3");
+				run("Measure");
+				ch2_average = getResult("Mean", 0);
+				
+				ch2_average_corr = ch2_average/background[chan] - 1;
+	
+				if (ch2_average_corr < 0 || ch2_average_corr != ch2_average_corr) ch2_average_corr = 0;
+				
+				run("Clear Results");
+				if (circular_profile_flag == true){
+	
+					for (i=0; i<nROIs; i++){
+		 
+						roiManager("Select", i+1);
+						roiManager("Rename", i*alpha_step);
 		
-//-----------------------------------Separate profiles data output-----------------------------------------
-//---------------------------------------------------------------------------------------------------------
-
-		 xl=File.open(dir1+ File.separator + list[number_of_file]+"GUV_"+number_of_GUV+1+".xls");
+						run("Set Measurements...", "mean min redirect=None decimal=3");
+						run("Measure");
 		
+					
 		
-		print (xl, "PROTEIN VALUE: <protein>/background");
-		print (xl, " ");
-		print (xl, "If PROTEIN VALUE = NaN it goes to 0");
-		print (xl, " ");
-
-		row = "\t\t" + "angle";
-
-		if (ch1 == true){
-			row = row +"\t\t" + title0;
-		}
-
-		if (ch2 == true){
-			row = row +"\t\t" + title1;
-		}
-
-		if (ch3 == true){
-			row = row +"\t\t" + title2;
-		}
-
-		print(xl,row);
+						Max_intensity_protein_1 [i] = getResult("Mean", i)/background[chan] - 1;
+							if (Max_intensity_protein_1 [i]!=Max_intensity_protein_1 [i]){
+								Max_intensity_protein_1 [i] = 0;
+							}
+						
+						Angle_array [i] = i*alpha_step;
+					}
+				}
+	
+	
+				run("Clear Results");
+				chan ++;
+			}
+			
+			//-----------channel 3----------------------
 		
+			if (ch3 == true){
+				selectWindow (title2);
+				roiManager("Select", 0);
+				
+				
+				run("Set Measurements...", "mean min integrated redirect=None decimal=3");
+				run("Measure");
+				ch3_average = getResult("Mean", 0);
+				
+	
+				ch3_average_corr = ch3_average/background[chan] - 1;
+	
+				if (ch3_average_corr < 0 || ch3_average_corr != ch3_average_corr) ch3_average_corr = 0;
+				
+				run("Clear Results");
+
+				if (circular_profile_flag == true){
+	
+					for (i=0; i<nROIs; i++){
+		 
+						roiManager("Select", i+1);
+						
+						roiManager("Rename", i*alpha_step);
 		
+						run("Set Measurements...", "mean min redirect=None decimal=3");
+						run("Measure");
+		
+					
+		
+						Max_intensity_protein_2 [i] = getResult("Mean", i)/background[chan] - 1;
+							if (Max_intensity_protein_2 [i]!=Max_intensity_protein_2 [i]){
+								Max_intensity_protein_2 [i] = 0;
+							}
+						
+						Angle_array [i] = i*alpha_step;
+					}
 
-		for(i=0;i<nROIs;i++){
-
-			row = "\t\t" + Angle_array[i];
-
-		if (ch1 == true){
-			row = row +"\t\t" + Max_intensity_membrane[i];
-		}
-
-		if (ch2 == true){
-			row = row +"\t\t" + Max_intensity_protein_1[i];
-		}
-
-		if (ch3 == true){
-			row = row +"\t\t" + Max_intensity_protein_2[i];
-		}
-
-		print(xl,row);
-
+				}
+	
+	
+				run("Clear Results");
+				chan ++;
+			}		
+			
+	//-----------------------------------Separate profiles data output-----------------------------------------
+	//---------------------------------------------------------------------------------------------------------
+	
+			if (circular_profile_flag == true){
+			xl=File.open(dir1+ File.separator + list[number_of_file]+"GUV_"+number_of_GUV+1+".xls");
 			
 			
+			print (xl, "PROTEIN VALUE: <protein>/background");
+			print (xl, " ");
+			print (xl, "If PROTEIN VALUE = NaN it goes to 0");
+			print (xl, " ");
+	
+			row = "\t\t" + "angle";
+	
+			if (ch1 == true){
+				row = row +"\t\t" + title0;
+			}
+	
+			if (ch2 == true){
+				row = row +"\t\t" + title1;
+			}
+	
+			if (ch3 == true){
+				row = row +"\t\t" + title2;
+			}
+	
+			print(xl,row);
+			
+			
+	
+			for(i=0;i<nROIs;i++){
+	
+				row = "\t\t" + Angle_array[i];
+	
+			if (ch1 == true){
+				row = row +"\t\t" + Max_intensity_membrane[i];
+			}
+	
+			if (ch2 == true){
+				row = row +"\t\t" + Max_intensity_protein_1[i];
+			}
+	
+			if (ch3 == true){
+				row = row +"\t\t" + Max_intensity_protein_2[i];
+			}
+	
+			print(xl,row);
+	
+				
+				
+			}
+			File.close(xl);
+			}
+		} else {
+			ch1_average = 0;
+			ch1_average_corr = 0;
+
+			ch2_average = 0;
+			ch2_average_corr = 0;
+
+			ch3_average = 0;
+			ch3_average_corr = 0;
 		}
-		File.close(xl);
+
 
 
 //---------------------------------------------------------------------------------------------------------
@@ -1157,12 +1428,41 @@ roiManager("Save", roiset);
 			chan++;
 			summary_ch3 = Array.concat(summary_ch3,summary_ch3_unit);
 		}
+
+//---------------------------------------------------------------------------------------------------------
+//-----------------------------------Summary files output--------------------------------------------------
+//---------------------------------------------------------------------------------------------------------
+if (ch1 ==true){
+
+File.append(summary_ch1_unit, dir1+ File.separator+"Summary_" + title0 + ".xls");
+	
+
+}
+
+if (ch2 ==true){
+	
+File.append(summary_ch2_unit, dir1+ File.separator+"Summary_" + title1 + ".xls");
+
+}
+
+if (ch3 ==true){
+	
+File.append(summary_ch3_unit, dir1+ File.separator+"Summary_" + title2 + ".xls");
+
+}
+
+
+
+
+//----------------Lo/Ld output in files--------------------------------------------------------------------
+
+
 		}
 run("Close All");
 		}
 	}
 //----------------------------------------------------------------------------------------------------------
-
+/*
 //-----------------------------------Summary files output--------------------------------------------------
 //---------------------------------------------------------------------------------------------------------
 if (ch1 ==true){
@@ -1265,7 +1565,7 @@ if (GUV_stitch == true){
 	File.close(xl1);
 	}
 	
-}
+}*/
 //---------------------------------------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------------------------------------
@@ -1275,7 +1575,7 @@ if (GUV_stitch == true){
 
 ScreenClean();
 
-
+waitForUser("Done");
 
 
 
