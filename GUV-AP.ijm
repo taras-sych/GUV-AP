@@ -27,18 +27,18 @@ getDateAndTime(year, month, dayofWeek, dayofMonth, hour, minute, second, msec);
 
 //---------------------------------------Input parameter section--------------------------------------------
 //----------------------------------------------------------------------------------------------------------
-	tc = 0.05;				// threshold coeffitient for GUV detection
+	tc = 0.1;				// threshold coeffitient for GUV detection
 
-	min_detected =200; 		// minimal area of detectede particles in pixels
+	min_detected =100; 		// minimal area of detectede particles in pixels
 
 	ce = 1.2; 				// circle extension
 
-	cirularity_check = 0.95;	// minimal possible circularity
+	cirularity_check = 0.75;	// minimal possible circularity
 	
 	file_extension = "tif"; // extension of processed files (NO DOT!)
 
 
-	alpha_step = 6; 		// sampling angle step
+	alpha_step = 12; 		// sampling angle step
 
 	setBatchMode(false);	// activate/deactivate BatchMode
 //----------------------------------------------------------------------------------------------------------
@@ -57,11 +57,14 @@ ttt=tc;
 //----------------------------------------------------------------------------------------------------------
 dir1 = dir + " " + year +"." + month + "." + dayofMonth + " " + hour + "." + minute + " - Result\\" ;
 File.makeDirectory(dir1);
+
+dir2 = dir1 + "ROI_Sets\\" ;
+File.makeDirectory(dir2);
 //----------------------------------------------------------------------------------------------------------
 
 title0 = "membrane";
-title1 = "protein_1";
-title2 = "protein_2";
+title1 = "StxB";
+title2 = "LecA";
 
 
 //----------------Select channel to process (GUI)-----------------------------------------------------------
@@ -69,9 +72,9 @@ title2 = "protein_2";
 Dialog.create("Analyze channel");
 Dialog.addCheckbox("channel 1", true);
 Dialog.addString("Name :", title0);
-Dialog.addCheckbox("channel 2", false);
+Dialog.addCheckbox("channel 2", true);
 Dialog.addString("Name :", title1);
-Dialog.addCheckbox("channel 3", true);
+Dialog.addCheckbox("channel 3", false);
 Dialog.addString("Name :", title2);
 Dialog.show();
 
@@ -113,19 +116,12 @@ background_noise_arr = newArray (channel_counter);
 		 Dialog.addChoice("Channel used for Segmentation:", newArray(title0, title1, title2,"Sum all channels"));
 	     	 Dialog.addRadioButtonGroup("Segmentation mode",newArray("Circular check (Non-phase separated)","GUV stitching (Phase separated)"), 2, 1,"Circular check (Non-phase separated)");
 	     	 Dialog.addHelp(html);
-	    Dialog.addChoice("Preview:", newArray("None","First file", "Select file"));
 		Dialog.show();
 	
 		channel = Dialog.getChoice();
 		 if (channel=="Sum all channels")
 		   channel="Overlay";
 	 	SegMode= Dialog.getRadioButton();
-	 	preview_mode = Dialog.getChoice();
-
-if (preview_mode == "First file" || preview_mode == "Select file") {
-setBatchMode(false);
-}
-
 
 if (SegMode == "Circular check (Non-phase separated)") {
 	circ_check = true;
@@ -168,19 +164,24 @@ Total_membrane = newArray (361);
 Total_protein_1 = newArray (361);
 Total_protein_2 = newArray (361);
 
-Max_intensity_membrane = newArray (360/alpha_step + 1);
-Max_intensity_protein_1 = newArray (360/alpha_step + 1);
-Max_intensity_protein_2 = newArray (360/alpha_step + 1);
+Max_intensity_membrane = newArray (361);
+Max_intensity_protein_1 = newArray (361);
+Max_intensity_protein_2 = newArray (361);
 
 Angle_array = newArray (361);
 
 counter = 0;
 
 summary_ch1 = newArray;
+summary_Ld_ch1 = newArray;
 
 summary_ch2 = newArray;
+summary_Ld_ch2 = newArray;
+
 
 summary_ch3 = newArray;
+summary_Ld_ch3 = newArray;
+
 //----------------------------------------------------------------------------------------------------------
 
 //----------------Check data folder for suitabke files------------------------------------------------------
@@ -198,27 +199,17 @@ if (file_counter == 0){
 } else {
 //----------------Loop analyses files one by one------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------	
-	if (preview_mode == "Select file") {
-		file = File.openDialog("Choose a File");
-		run("Bio-Formats Importer", "open=file autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
-		image123 = getTitle();
-	}
 	for (number_of_file = 0; number_of_file<list.length; number_of_file++){
 		if (endsWith(list[number_of_file],file_extension) == 1){
 
 		//----------File import
-
-
-		
+		print(list[number_of_file]);
 		file = dir + list[number_of_file];
-		//file_marked = dir1 + File.separator + list[number_of_file];
+		file_marked = dir1 + File.separator + list[number_of_file];
 
-		if (preview_mode == "None" || preview_mode == "First file"){
-		run("Bio-Formats Importer", "open=file autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
-		} else selectWindow (image123);
 		
-		file_marked = dir1 + File.separator + File.nameWithoutExtension;
-		file_excell = dir1 + File.separator + File.nameWithoutExtension;
+		run("Bio-Formats Importer", "open=file autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
+
 		run("32-bit");
 
 		rename("raw_data_0");
@@ -627,6 +618,272 @@ if (file_counter == 0){
 		chan++;
 		}
 
+//-------------------------------------------------------------------------------
+//------------------------------Lo/Ld processing---------------------------------
+//-------------------------------------------------------------------------------
+
+if (GUV_stitch == true){
+
+	nRois = roiManager("Count");
+
+	count111 = 0;
+	for (rr = 0; rr <nRois; rr++){
+		newImage("ring_mask", "8-bit black", width33, height33, 1);
+		run("Select None");
+		roiManager("Select", rr);
+		
+		setForegroundColor(255, 255, 255);
+				run("Draw", "slice");
+				run("Select None");
+
+				run("Options...", "iterations=1 count=1");
+				run("Erode");
+				run("Erode");
+				run("Erode");
+
+				run("Invert LUT");
+
+				run("Analyze Particles...", "size=5-Infinity show=Masks exclude add");
+				
+				nRois_new = roiManager("Count");
+
+				array_roi = newArray;
+
+				array_roi = Array.concat(array_roi,nRois+count111);
+
+
+				for (rrr = nRois+1+count111; rrr < nRois_new; rrr++){
+					array_roi = Array.concat(array_roi,rrr);
+			}
+
+			
+
+			
+
+			
+				if (lengthOf(array_roi) > 1){
+				roiManager("Select", array_roi);
+				roiManager("Combine");
+				roiManager("Add");
+				roiManager("Select", array_roi);
+				roiManager("Delete");}
+			
+				
+
+				name = "z_GUV_" + "Ld_" + rr ;
+
+				
+
+				roiManager("Select", nRois+count111);
+				roiManager("Rename", name);
+				
+				count111 ++;
+				selectWindow ("ring_mask");
+				close();
+
+				selectWindow ("Mask of ring_mask");
+				close();
+				
+
+				
+	}
+
+		nRois = roiManager("Count");
+		for (rr = 0; rr<nRois/2; rr++){
+				roiManager("Select", rr-rr);
+				roiManager("Delete");
+			
+		}
+
+	
+	nRois = roiManager("Count");
+	count111 = 0;
+	for (number_of_GUV = 0; number_of_GUV < GUVs_total; number_of_GUV ++){
+				
+				newImage("ring_mask", "8-bit black", width33, height33, 1);
+				makeOval ((x_c_array[number_of_GUV] - R_array[number_of_GUV])/pixelWidth, (y_c_array[number_of_GUV] - R_array[number_of_GUV])/pixelWidth, 2*R_array[number_of_GUV]/pixelWidth, 2*R_array[number_of_GUV]/pixelWidth);
+				setForegroundColor(255, 255, 255);
+				run("Draw", "slice");
+
+				
+				
+				run("Select None");
+
+				roiManager("Select", number_of_GUV);
+
+				setBackgroundColor(0, 0, 0);
+				run("Clear", "slice");
+
+				run("Select None");
+				
+				run("Options...", "iterations=1 count=1");
+				run("Erode");
+				run("Erode");
+				run("Erode");
+				
+				
+				run("Invert LUT");
+
+				run("Analyze Particles...", "size=5-Infinity show=Masks exclude add");
+				
+				nRois_new = roiManager("Count");
+
+				array_roi = newArray;
+
+				array_roi = Array.concat(array_roi,nRois+count111);
+
+
+				for (rrr = nRois+1+count111; rrr < nRois_new; rrr++){
+					array_roi = Array.concat(array_roi,rrr);
+			}
+
+			
+
+			//Array.show(array_roi);
+
+			
+				if (lengthOf(array_roi) > 1){
+				roiManager("Select", array_roi);
+				roiManager("Combine");
+				roiManager("Add");
+				roiManager("Select", array_roi);
+				roiManager("Delete");}
+			
+				
+
+				name = "z_GUV_" + "Lo_" + number_of_GUV ;
+
+				
+
+				roiManager("Select", nRois+count111);
+				roiManager("Rename", name);
+				
+				count111 ++;
+				selectWindow ("ring_mask");
+				close();
+
+				selectWindow ("Mask of ring_mask");
+				close();
+				
+	Ld_p1 = 0;
+	Ld_p2 = 0;
+	Ld_p3 = 0;
+	Lo_p1 = 0;
+	Lo_p2 = 0;
+	Ld_p3 = 0;
+
+	chan = 0;
+	
+	if (ch1 == true){
+			selectWindow (title0);
+			
+			roiManager("Select", number_of_GUV);
+			
+			run("Set Measurements...", "mean min integrated redirect=None decimal=3");
+			run("Measure");
+			Ld_p1 = getResult("Mean", 0)/background[chan] - 1;
+
+			run("Clear Results");
+			run("Select None");
+			
+			selectWindow (title0);
+			roiManager("Select", number_of_GUV + nRois);
+			
+			run("Set Measurements...", "mean min integrated redirect=None decimal=3");
+			run("Measure");
+			Lo_p1 = getResult("Mean", 0)/background[chan] - 1;
+
+			run("Clear Results");
+			run("Select None");
+
+	summary_ch1_Ld_unit  = list [number_of_file]+" GUV_" + number_of_GUV+1 + "\t\t"+ Ld_p1 + "\t\t"+ Lo_p1 + "\t\t" + background[chan];
+	summary_Ld_ch1 = Array.concat(summary_Ld_ch1,summary_ch1_Ld_unit);
+	
+	chan ++;
+
+	}
+
+	if (ch2 == true){
+			selectWindow (title1);
+			roiManager("Select", number_of_GUV);
+			
+			run("Set Measurements...", "mean min integrated redirect=None decimal=3");
+			run("Measure");
+			Ld_p2 = getResult("Mean", 0)/background[chan] - 1;
+
+			run("Clear Results");
+			run("Select None");
+
+			selectWindow (title1);
+			roiManager("Select", number_of_GUV + nRois);
+			
+			run("Set Measurements...", "mean min integrated redirect=None decimal=3");
+			run("Measure");
+			Lo_p2 = getResult("Mean", 0)/background[chan] - 1;
+
+			run("Clear Results");
+			run("Select None");
+
+	summary_ch2_Ld_unit  = list [number_of_file]+" GUV_" + number_of_GUV+1 + "\t\t"+ Ld_p2 + "\t\t"+ Lo_p2 + "\t\t" + background[chan];
+	summary_Ld_ch2 = Array.concat(summary_Ld_ch2,summary_ch2_Ld_unit);
+	
+	chan ++;
+
+	}
+
+	if (ch3 == true){
+			selectWindow (title2);
+			roiManager("Select", number_of_GUV);
+			
+			run("Set Measurements...", "mean min integrated redirect=None decimal=3");
+			run("Measure");
+			Ld_p3 = getResult("Mean", 0)/background[chan] - 1;
+
+			run("Clear Results");
+			run("Select None");
+
+			selectWindow (title2);
+			roiManager("Select", number_of_GUV + nRois);
+			
+			run("Set Measurements...", "mean min integrated redirect=None decimal=3");
+			run("Measure");
+			Lo_p3 = getResult("Mean", 0)/background[chan] - 1;
+
+			run("Clear Results");
+			run("Select None");
+
+	summary_ch3_Ld_unit  = list [number_of_file]+" GUV_" + number_of_GUV+1 + "\t\t"+ Ld_p3 + "\t\t"+ Lo_p3 + "\t\t" + background[chan];
+	summary_Ld_ch3 = Array.concat(summary_Ld_ch3,summary_ch3_Ld_unit);
+	
+	chan ++;
+
+	
+
+	}
+	
+	
+	}
+
+
+	
+		
+}
+
+
+//------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------------
+
+//-----Saving set of ROIs
+
+
+roiset = dir2 + File.separator + "ROI_" + list[number_of_file] + ".zip";
+roiManager("Save", roiset);
+
+//------------------------
+
+
+
 //--------------loop for GUV processing------------------------------------------
 
 		for (number_of_GUV = 0; number_of_GUV < GUVs_total; number_of_GUV ++){
@@ -635,16 +892,15 @@ if (file_counter == 0){
 			//Ring selection
 				newImage("ring_mask", "8-bit black", width33, height33, 1);
 				makeOval ((x_c_array[number_of_GUV] - R_array[number_of_GUV])/pixelWidth, (y_c_array[number_of_GUV] - R_array[number_of_GUV])/pixelWidth, 2*R_array[number_of_GUV]/pixelWidth, 2*R_array[number_of_GUV]/pixelWidth);
-				
 				setForegroundColor(255, 255, 255);
-				
 				run("Draw", "slice");
 				run("Select None");
+
 				run("Options...", "iterations=1 count=1");
 				run("Erode");
 				run("Erode");
 				run("Erode");
-
+				
 				roiManager("Deselect");
 				roiManager("Delete");
 				run("Invert LUT");
@@ -733,7 +989,7 @@ if (file_counter == 0){
 
 				Max_intensity_membrane [i] = getResult("Mean", i)/background[chan] - 1;
 
-				if (Max_intensity_membrane [i]!=Max_intensity_membrane [i] || Max_intensity_membrane [i] < 0){
+				if (Max_intensity_membrane [i]!=Max_intensity_membrane [i] ){
 					Max_intensity_membrane [i] = 0;
 				}
 			
@@ -771,7 +1027,7 @@ if (file_counter == 0){
 			
 
 				Max_intensity_protein_1 [i] = getResult("Mean", i)/background[chan] - 1;
-					if (Max_intensity_protein_1 [i]!=Max_intensity_protein_1 [i] || Max_intensity_protein_1 [i] < 0){
+					if (Max_intensity_protein_1 [i]!=Max_intensity_protein_1 [i]){
 						Max_intensity_protein_1 [i] = 0;
 					}
 				
@@ -813,7 +1069,7 @@ if (file_counter == 0){
 			
 
 				Max_intensity_protein_2 [i] = getResult("Mean", i)/background[chan] - 1;
-					if (Max_intensity_protein_2 [i]!=Max_intensity_protein_2 [i] || Max_intensity_protein_2 [i] < 0){
+					if (Max_intensity_protein_2 [i]!=Max_intensity_protein_2 [i]){
 						Max_intensity_protein_2 [i] = 0;
 					}
 				
@@ -827,8 +1083,8 @@ if (file_counter == 0){
 		
 //-----------------------------------Separate profiles data output-----------------------------------------
 //---------------------------------------------------------------------------------------------------------
-		
-		 xl=File.open(file_excell + "_GUV_"+number_of_GUV+1+".xls");
+
+		 xl=File.open(dir1+ File.separator + list[number_of_file]+"GUV_"+number_of_GUV+1+".xls");
 		
 		
 		print (xl, "PROTEIN VALUE: <protein>/background");
@@ -875,61 +1131,10 @@ if (file_counter == 0){
 			
 			
 		}
-		File.close(xl);	
+		File.close(xl);
 
 
-//--------------------------------------------------------------------------------------------------------
-//--------------------------------------Preview output----------------------------------------------------
-
-if (preview_mode == "First file" || preview_mode == "Select file"){
-	plot_name = "GUV " + number_of_GUV+1;
-
-	Array.getStatistics(Max_intensity_membrane, min_1, max_1, mean_1, std_1);
-	Array.getStatistics(Max_intensity_protein_1, min_2, max_2, mean_2, std_2);
-	Array.getStatistics(Max_intensity_protein_2, min_3, max_3, mean_3, std_3);
-
-	max_max = max_1;
-	if (max_2 > max_max) max_max = max_2;
-	if (max_3 > max_max) max_max = max_3;
-
-	legend = "";
-	
-	
-	Plot.create(plot_name, "angle, deg", "Intensity, a.u.");
-	Plot.setLimits (0,360,-1,max_max+1);
-	
-	if (ch1 == true){
-	Plot.setColor ("green");
-	Plot.add ("Lines",Angle_array,Max_intensity_membrane);
-	legend = legend + title0 + "\t";}
-
-	if (ch2 == true){
-	Plot.setColor ("red");
-	Plot.add ("Lines",Angle_array,Max_intensity_protein_1);
-	legend = legend + title1 + "\t";}
-
-	if (ch3 == true){
-	Plot.setColor ("blue");
-	Plot.add ("Lines",Angle_array,Max_intensity_protein_2);
-	legend = legend + title2 + "\t";}
-	Plot.setColor ("green");
-
-Plot.setLegend(legend, "top-right");
-Plot.show();
-
-	
-	file_plot = dir1 + File.separator + list[number_of_file] +"_GUV" + number_of_GUV+1 + "_plot";
-		
-
-		saveAs("Tiff", file_plot);
-		close();
-}
-
-
-
-		
 //---------------------------------------------------------------------------------------------------------
-		
 //-----------------------------------Construct rows for summary files--------------------------------------
 //---------------------------------------------------------------------------------------------------------
 		chan = 0;
@@ -951,40 +1156,10 @@ Plot.show();
 			summary_ch3 = Array.concat(summary_ch3,summary_ch3_unit);
 		}
 		}
-
-
 run("Close All");
-		
-		
-		
-		if (preview_mode == "First file" || preview_mode == "Select file") {
-		//open(file_marked);
-		Prename=dir1 + File.separator + list[number_of_file] +"_GUV";
-		number_of_file = list.length-1;
-		
-		
 		}
-	
-	
-	
 	}
-	
-	}
-
-	ScreenClean();
-
-
-if (preview_mode == "First file" || preview_mode == "Select file") {
-		open(file_marked);
-		for (number_of_GUV = 0; number_of_GUV < GUVs_total; number_of_GUV ++){
-			file_plot = Prename + number_of_GUV+1 + "_plot.tif";
-			open(file_plot);
-		}
-		
-		}
-
-
-
+//----------------------------------------------------------------------------------------------------------
 
 //-----------------------------------Summary files output--------------------------------------------------
 //---------------------------------------------------------------------------------------------------------
@@ -1029,12 +1204,74 @@ for (number_of_file = 0; number_of_file<summary_ch3.length; number_of_file++){
 
 File.close(xl1);
 }
+
+
+
+
+//----------------Lo/Ld output in files--------------------------------------------------------------------
+
+if (GUV_stitch == true){
+
+	if (ch1 ==true){
+
+	
+
+	xl1=File.open(dir1+File.separator+"Summary_Ld_Lo_" + title0 + ".xls");
+
+	print(xl1,"name"+"\t\t"+  "<"+title0+"_Ld>" +"\t\t" + "<"+title0+"_Lo>" +"\t\t" + "background");
+
+	for (number_of_file = 0; number_of_file<summary_Ld_ch1.length; number_of_file++){
+	
+		print(xl1,summary_Ld_ch1[number_of_file]);	
+	
+	}
+
+	File.close(xl1);
+	}
+
+	if (ch2 ==true){
+
+	
+
+	xl1=File.open(dir1+File.separator+"Summary_Ld_Lo_" + title1 + ".xls");
+
+	print(xl1,"name"+"\t\t"+  "<"+title1+"_Ld>" +"\t\t" + "<"+title1+"_Lo>" +"\t\t" + "background");
+
+	for (number_of_file = 0; number_of_file<summary_Ld_ch2.length; number_of_file++){
+	
+		print(xl1,summary_Ld_ch2[number_of_file]);	
+	
+	}
+
+	File.close(xl1);
+	}
+	
+	
+	
+	if (ch3 ==true){
+
+	xl1=File.open(dir1+File.separator+"Summary_Ld_Lo_" + title2 + ".xls");
+
+	print(xl1,"name"+"\t\t"+  "<"+title2+"_Ld>" +"\t\t" + "<"+title2+"_Lo>" +"\t\t" + "background");
+
+	for (number_of_file = 0; number_of_file<summary_Ld_ch3.length; number_of_file++){
+	
+		print(xl1,summary_Ld_ch3[number_of_file]);	
+	
+	}
+
+	File.close(xl1);
+	}
+	
+}
+//---------------------------------------------------------------------------------------------------------
+
 //---------------------------------------------------------------------------------------------------------
 
 
 }
 
-
+ScreenClean();
 
 
 
