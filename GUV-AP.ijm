@@ -12,6 +12,8 @@
 +												+	
 +++++++++++++++++++++++++++++++++++++++++++++++++
 
+// This is the version 2.0
+
 +
 Image recommandation
 •	Raw data gray scale image (no scale or color bars)
