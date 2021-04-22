@@ -1,10 +1,10 @@
-# GUV-AP 1.0
+# GUV-AP interface 1.0
 
-Image processing software for quantification of fluorescence images of Giant Unilamellar Vesicles
+Image processing software for quantification of cross-linked Giant Unilamellar Vesicles
 
 This is the version 1.0 
 
-Please, cite: 
-Sych, T. et al. GUV-AP: multifunctional FIJI-based tool for quantitative image analysis of Giant Unilamellar Vesicles. Bioinformatics 35, 2340–2342 (2019).
+1. GUV detection by GUV lumen (only homogeneous GUVs)
+2. Calculation of intyensity in interfaces and non-interfaces.
 
  
