@@ -4,7 +4,7 @@
 
 //---------Data input--------------
 ce = 1.2;
-alpha_step = 3;
+alpha_step = 6;
 
 image_title = getTitle;
 
@@ -34,7 +34,7 @@ while (oops == true){
 		selectWindow("C1-raw_data_1");
 		rename("LecA_0");
 	}
-
+		
 	if (prot_chan == "2.0"){
 		selectWindow("C1-raw_data_1");
 		rename ("membrane_0");
@@ -43,6 +43,12 @@ while (oops == true){
 		rename("LecA_0");
 	}
 
+	selectWindow ("LecA_0");
+	run("Smooth");
+	run("Smooth");
+	run("Smooth");
+	run("Smooth");
+			
 	while (user_is_happy == "NO"){
 		
 		if (roiManager("count")>0){
@@ -202,7 +208,7 @@ run ("32-bit");
 setThreshold(bottom, 4096);
 run("NaN Background", "stack");
 
-
+/*
 setTool("rectangle");
 waitForUser( "Pause","Please, select protein background area");
 run("Set Measurements...", "mean redirect=None decimal=3");
@@ -210,32 +216,50 @@ run("Measure");
 			
 background = getResult("Mean", 0);
 run("Clear Results");
-
+*/
 
 n_points = 360/alpha_step;
 
 Profile_array = newArray(n_points);
 
 	Dialog.create("What to calculate:");
-	Dialog.addChoice("Signal ration", "Interface sizes");
+	Dialog.addChoice( "Calculatio", newArray ("Interface sizes", "Signal ratio"));
 	Dialog.show();
 	Task = Dialog.getChoice();
 
 
 //-------------------------Define thresholds------------------------------------
-waitForUser("Define threshold of interfaces");
+
+if (Task ==  "Interface sizes"){
+	selectWindow ("LecA_0");
+	waitForUser("Define threshold of non-interface");
 	Dialog.create("Interface thresholds:");
-	Dialog.addNumber("Interface bottom:", 0);
-	Dialog.addNumber("Interface top:", 0);
-	Dialog.addNumber("Single membrane bottom:", 0);
-	Dialog.addNumber("Single membrane top:", 0);
+	Dialog.addNumber("GUV bottom:", 395);
 	Dialog.show();
-	Int_bottom = Dialog.getNumber();
-	Int_top = Dialog.getNumber();
-	Single_bottom = Dialog.getNumber();
-	Single_top = Dialog.getNumber();
+	bottom = Dialog.getNumber();
+
+
+	
+	selectWindow ("LecA_0");
+	setThreshold(bottom, 65535);
+	run("Convert to Mask");
+	run("32-bit");
+	
+	setThreshold(100, 255);
+	run("NaN Background");
+	setAutoThreshold("Default");
+	
+	
+}
+
+
 
 //-------------------------------------------------------------------------------
+
+if (Task ==  "Interface sizes"){
+xl=File.open(dir1+ File.separator+"Interface sizes.xls");
+print(xl,"number of GUV" + "\t\t" + "Radius" + "\t\t" + "Interface1" + "\t\t" + "Interface2" + "\t\t" + "Interface3" + "\t\t" + "Interface4" + "\t\t" + "Interface5" + "\t\t" + "Interface6" + "\t\t" + "Interface7");
+}
 
 for (i = 0; i<N; i++){
 
@@ -254,7 +278,7 @@ for (i = 0; i<N; i++){
 
 			run("Set Measurements...", "mean min redirect=None decimal=3");
 			run("Measure");
-			value = getResult("Mean", 0)/background;
+			value = getResult("Mean", 0);
 
 
 			Profile_array[(alpha-alpha_step)/alpha_step] = value;
@@ -262,7 +286,7 @@ for (i = 0; i<N; i++){
 			run("Clear Results");
 	}//end of alpha cycle
 
-
+if (Task ==  "Signal ratio"){
 	sum = 0;
 	
 	for (j=0; j<lengthOf(Profile_array); j++)
@@ -293,15 +317,60 @@ for (i = 0; i<N; i++){
 	value_ratio = (value_i/count_i)/(value_s/count_s);
 
 	ratio [i] = value_ratio;
+}
+
+if (Task ==  "Interface sizes"){
+
+	
+	j = 0;
+	int_array = newArray;
+
+	while (j<lengthOf(Profile_array)){
+
+		int_counter = 0;
+
+		if (Profile_array[j] != Profile_array[j]){
+
+			
+			
+			while (Profile_array[j] != Profile_array[j] && j< (lengthOf(Profile_array)-1)){
+				int_counter ++;
+				j++;
+			}
+			int_array = Array.concat(int_array,int_counter);
+		}
+
+
+
+		j++;
+		
+	}
+
+	if (lengthOf (int_array) == 0){
+		int_array = Array.concat(int_array,0);
+	}
+
+	line = "GUV " + i+1 + "\t\t" + R[i] + "\t\t";
+
+	for (j=0; j<lengthOf(int_array); j++){
+		line = line + "\t\t" + int_array[j] * alpha_step;
+	}
+
+	print(xl, line);
+	
+}
+	
 }//end of calculation cycle
 
+File.close(xl);
 
+
+
+
+
+if (Task ==  "Signal ratio"){
 
 xl=File.open(dir1+ File.separator+"Summary.xls");
-
-
-
-
 
 print(xl,"number of GUV" + "\t\t" + "ratio");
 
@@ -310,7 +379,7 @@ for (i = 0; i<N; i++){
 }
 
 File.close(xl);
-
+}
 
 ScreenClean();
 
