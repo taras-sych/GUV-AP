@@ -59,15 +59,15 @@ ttt=tc;
 
 //----------------Create directory for data output----------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------
-dir1 = dir + " " + year +"." + month + "." + dayofMonth + " " + hour + "." + minute + " - Result\\" ;
+dir1 = dir + " " + year +"." + month + "." + dayofMonth + " " + hour + "." + minute + "." + second + " - Result\\" ;
 File.makeDirectory(dir1);
 
 dir2 = dir1 + "ROI_Sets\\" ;
 File.makeDirectory(dir2);
 //----------------------------------------------------------------------------------------------------------
 
-title0 = "6_His_Tag_Al_488";
-title1 = "ASR_PE";
+title0 = "Gb3_Fluo";
+title1 = "Atto_647_N";
 title2 = "LecA";
 
 
@@ -856,8 +856,8 @@ if (GUV_stitch == true){
 
 				run("Options...", "iterations=1 count=1");
 				run("Erode");
-				run("Erode");
-				run("Erode");
+				//run("Erode");
+				//run("Erode");
 
 				run("Invert LUT");
 
