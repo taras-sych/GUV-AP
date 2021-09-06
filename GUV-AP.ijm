@@ -856,8 +856,46 @@ if (GUV_stitch == true){
 
 				run("Options...", "iterations=1 count=1");
 				run("Erode");
-				//run("Erode");
-				//run("Erode");
+				run("Erode");
+				run("Erode");
+//---------------------new
+				newImage("frame_mask", "8-bit black", width33, height33, 1);
+
+				run("Erode");
+				run("Erode");
+				run("Erode");
+
+				nRois_now = roiManager("Count");
+
+				run("Invert LUT");
+				run("Analyze Particles...", "size=0-Infinity show=Nothing add");
+				roiManager("Show None");
+
+				
+				
+				setThreshold(0, 214);
+				run("Analyze Particles...", "size=0-Infinity show=Nothing add");
+				
+				roiManager("Select", newArray(nRois_now,nRois_now+1));
+				roiManager("XOR");
+				roiManager("Add");
+				
+
+
+				selectWindow("frame_mask");
+				close();
+				selectWindow("ring_mask");
+				roiManager("Select", nRois_now+2)
+
+				setBackgroundColor(0, 0, 0);
+				run("Clear", "slice");
+
+
+
+				roiManager("Select", newArray(nRois_now,nRois_now+1,nRois_now+2))
+				roiManager("Delete");
+
+//---------------------new
 
 				run("Invert LUT");
 
@@ -935,20 +973,76 @@ if (GUV_stitch == true){
 				run("Select None");
 				
 				run("Options...", "iterations=1 count=1");
+				
 				run("Erode");
 				run("Erode");
 				run("Erode");
+
+				newImage("frame_mask", "8-bit black", width33, height33, 1);
+
+				run("Erode");
+				run("Erode");
+				run("Erode");
+
+				nRois_now = roiManager("Count");
+
+				run("Invert LUT");
+				run("Analyze Particles...", "size=0-Infinity show=Nothing add");
+				roiManager("Show None");
+
 				
 				
+				setThreshold(0, 214);
+				run("Analyze Particles...", "size=0-Infinity show=Nothing add");
+				
+				roiManager("Select", newArray(nRois_now,nRois_now+1));
+				roiManager("XOR");
+				roiManager("Add");
+				
+
+
+				selectWindow("frame_mask");
+				close();
+				selectWindow("ring_mask");
+				roiManager("Select", nRois_now+2)
+
+				setBackgroundColor(0, 0, 0);
+				run("Clear", "slice");
+
+
+
+				roiManager("Select", newArray(nRois_now,nRois_now+1,nRois_now+2))
+				roiManager("Delete");
+				
+				
+
+				
+
+				
+
 				run("Invert LUT");
 
+				
+
+
+				
+
+
+				
+
+				
+
 				run("Analyze Particles...", "size=5-Infinity show=Masks exclude add");
+
+				
 				
 				nRois_new = roiManager("Count");
 
 				array_roi = newArray;
 
 				array_roi = Array.concat(array_roi,nRois+count111);
+
+				
 
 
 				for (rrr = nRois+1+count111; rrr < nRois_new; rrr++){
@@ -958,20 +1052,23 @@ if (GUV_stitch == true){
 			
 
 			//Array.show(array_roi);
-
+				
 			
 				if (lengthOf(array_roi) > 1){
-				roiManager("Select", array_roi);
-				roiManager("Combine");
-				roiManager("Add");
-				roiManager("Select", array_roi);
-				roiManager("Delete");}
+					roiManager("Select", array_roi);
+					roiManager("Combine");
+					roiManager("Add");
+					roiManager("Select", array_roi);
+					roiManager("Delete");
+					}
+			
 			
 				
 
 				name = "z_GUV_" + "Lo_" + number_of_GUV ;
 
-				
+
+
 
 				roiManager("Select", nRois+count111);
 				roiManager("Rename", name);
@@ -982,6 +1079,9 @@ if (GUV_stitch == true){
 
 				selectWindow ("Mask of ring_mask");
 				close();
+
+
+
 				
 	Ld_p1 = 0;
 	Ld_p2 = 0;
@@ -991,7 +1091,7 @@ if (GUV_stitch == true){
 	Ld_p3 = 0;
 
 	chan = 0;
-	
+
 	if (ch1 == true){
 			selectWindow (title0);
 			
@@ -1016,6 +1116,9 @@ if (GUV_stitch == true){
 
 	summary_ch1_Ld_unit  = list [number_of_file]+" GUV_" + number_of_GUV+1 + "\t\t"+ Ld_p1 + "\t\t"+ Lo_p1 + "\t\t" + background[chan];
 	summary_Ld_ch1 = Array.concat(summary_Ld_ch1,summary_ch1_Ld_unit);
+
+	File.append(summary_ch1_Ld_unit,dir1+File.separator+"Summary_Ld_Lo_" + title0 + ".xls");
+
 	
 	chan ++;
 
@@ -1044,6 +1147,8 @@ if (GUV_stitch == true){
 
 	summary_ch2_Ld_unit  = list [number_of_file]+" GUV_" + number_of_GUV+1 + "\t\t"+ Ld_p2 + "\t\t"+ Lo_p2 + "\t\t" + background[chan];
 	summary_Ld_ch2 = Array.concat(summary_Ld_ch2,summary_ch2_Ld_unit);
+
+	File.append(summary_ch2_Ld_unit,dir1+File.separator+"Summary_Ld_Lo_" + title1 + ".xls");
 	
 	chan ++;
 
@@ -1072,6 +1177,8 @@ if (GUV_stitch == true){
 
 	summary_ch3_Ld_unit  = list [number_of_file]+" GUV_" + number_of_GUV+1 + "\t\t"+ Ld_p3 + "\t\t"+ Lo_p3 + "\t\t" + background[chan];
 	summary_Ld_ch3 = Array.concat(summary_Ld_ch3,summary_ch3_Ld_unit);
+
+	File.append(summary_ch3_Ld_unit,dir1+File.separator+"Summary_Ld_Lo_" + title2 + ".xls");
 	
 	chan ++;
 
@@ -1085,25 +1192,6 @@ if (GUV_stitch == true){
 
 
 
-	if (ch1 ==true){
-
-		File.append(summary_ch1_Ld_unit,dir1+File.separator+"Summary_Ld_Lo_" + title0 + ".xls");
-
-	}
-
-	if (ch2 ==true){
-
-		File.append(summary_ch2_Ld_unit,dir1+File.separator+"Summary_Ld_Lo_" + title1 + ".xls");
-
-	}
-	
-	
-	
-	if (ch3 ==true){
-
-		File.append(summary_ch3_Ld_unit,dir1+File.separator+"Summary_Ld_Lo_" + title2 + ".xls");
-
-	}
 	
 	
 		
@@ -1151,6 +1239,7 @@ roiManager("Save", roiset);
 
 				run("Analyze Particles...", "size=5-Infinity show=Masks exclude add");
 				run("Invert LUT");
+				setThreshold(0, 214);
 				run("Analyze Particles...", "size=5-Infinity show=Masks exclude add");
 				close();
 				close();
@@ -1160,12 +1249,14 @@ roiManager("Save", roiset);
 				
 					roiManager("Select", newArray(0,1));
 					close();
+
 					roiManager("XOR");
 					roiManager("Add");
 					roiManager("Delete");
 					roiManager("Select", 0);
 					roiManager("Select", 0);
 					roiManager("Rename", "Ring");
+					
 				//End of ring selection
 	
 				selectWindow("mask");
@@ -1178,6 +1269,7 @@ roiManager("Save", roiset);
 				R = R_array [number_of_GUV] * circle_extension;
 	
 				r_c=1;
+				
 				if (circular_profile_flag == true){
 					
 				
@@ -1206,7 +1298,7 @@ roiManager("Save", roiset);
 				
 					}
 				
-		
+					
 					run("Clear Results");
 		
 		
