@@ -1204,9 +1204,12 @@ if (GUV_stitch == true){
 
 //-----Saving set of ROIs
 
+if (GUVs_total > 0){
+	roiset = dir2 + File.separator + "ROI_" + list[number_of_file] + ".zip";
+	roiManager("Save", roiset);
 
-roiset = dir2 + File.separator + "ROI_" + list[number_of_file] + ".zip";
-roiManager("Save", roiset);
+}
+
 
 //------------------------
 
