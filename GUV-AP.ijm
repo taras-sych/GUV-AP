@@ -192,7 +192,7 @@ if (GUV_stitch == true){
 
 		file_LoLd_ch1=File.open(dir1+File.separator+"Summary_Ld_Lo_" + title0 + ".xls");
 	
-		print(file_LoLd_ch1,"name"+"\t\t"+  "<"+title0+"_Ld>" +"\t\t" + "<"+title0+"_Lo>" +"\t\t" + "background");
+		print(file_LoLd_ch1,"name"+"\t\t"+  "<"+title0+"_Ld>" +"\t\t" + "<"+title0+"_Lo>" +"\t\t" + "background" + "\t\t" + "%_in_Lo");
 	
 		File.close(file_LoLd_ch1);
 	}
@@ -203,7 +203,7 @@ if (GUV_stitch == true){
 
 		file_LoLd_ch2=File.open(dir1+File.separator+"Summary_Ld_Lo_" + title1 + ".xls");
 	
-		print(file_LoLd_ch2,"name"+"\t\t"+  "<"+title1+"_Ld>" +"\t\t" + "<"+title1+"_Lo>" +"\t\t" + "background");
+		print(file_LoLd_ch2,"name"+"\t\t"+  "<"+title1+"_Ld>" +"\t\t" + "<"+title1+"_Lo>" +"\t\t" + "background" + "\t\t" + "%_in_Lo");
 	
 		File.close(file_LoLd_ch2);
 	}
@@ -214,7 +214,7 @@ if (GUV_stitch == true){
 
 		file_LoLd_ch3=File.open(dir1+File.separator+"Summary_Ld_Lo_" + title2 + ".xls");
 	
-		print(file_LoLd_ch3,"name"+"\t\t"+  "<"+title2+"_Ld>" +"\t\t" + "<"+title2+"_Lo>" +"\t\t" + "background");
+		print(file_LoLd_ch3,"name"+"\t\t"+  "<"+title2+"_Ld>" +"\t\t" + "<"+title2+"_Lo>" +"\t\t" + "background" + "\t\t" + "%_in_Lo");
 	
 	
 		File.close(file_LoLd_ch3);
@@ -1114,7 +1114,7 @@ if (GUV_stitch == true){
 			run("Clear Results");
 			run("Select None");
 
-	summary_ch1_Ld_unit  = list [number_of_file]+" GUV_" + number_of_GUV+1 + "\t\t"+ Ld_p1 + "\t\t"+ Lo_p1 + "\t\t" + background[chan];
+	summary_ch1_Ld_unit  = list [number_of_file]+" GUV_" + number_of_GUV+1 + "\t\t"+ Ld_p1 + "\t\t"+ Lo_p1 + "\t\t" + background[chan] + "\t\t" + Lo_p1/(Lo_p1 + Ld_p1);
 	summary_Ld_ch1 = Array.concat(summary_Ld_ch1,summary_ch1_Ld_unit);
 
 	File.append(summary_ch1_Ld_unit,dir1+File.separator+"Summary_Ld_Lo_" + title0 + ".xls");
@@ -1145,7 +1145,7 @@ if (GUV_stitch == true){
 			run("Clear Results");
 			run("Select None");
 
-	summary_ch2_Ld_unit  = list [number_of_file]+" GUV_" + number_of_GUV+1 + "\t\t"+ Ld_p2 + "\t\t"+ Lo_p2 + "\t\t" + background[chan];
+	summary_ch2_Ld_unit  = list [number_of_file]+" GUV_" + number_of_GUV+1 + "\t\t"+ Ld_p2 + "\t\t"+ Lo_p2 + "\t\t" + background[chan] + "\t\t" + Lo_p2/(Lo_p2 + Ld_p2);
 	summary_Ld_ch2 = Array.concat(summary_Ld_ch2,summary_ch2_Ld_unit);
 
 	File.append(summary_ch2_Ld_unit,dir1+File.separator+"Summary_Ld_Lo_" + title1 + ".xls");
@@ -1175,7 +1175,7 @@ if (GUV_stitch == true){
 			run("Clear Results");
 			run("Select None");
 
-	summary_ch3_Ld_unit  = list [number_of_file]+" GUV_" + number_of_GUV+1 + "\t\t"+ Ld_p3 + "\t\t"+ Lo_p3 + "\t\t" + background[chan];
+	summary_ch3_Ld_unit  = list [number_of_file]+" GUV_" + number_of_GUV+1 + "\t\t"+ Ld_p3 + "\t\t"+ Lo_p3 + "\t\t" + background[chan] + "\t\t" + Lo_p3/(Lo_p3 + Ld_p3);
 	summary_Ld_ch3 = Array.concat(summary_Ld_ch3,summary_ch3_Ld_unit);
 
 	File.append(summary_ch3_Ld_unit,dir1+File.separator+"Summary_Ld_Lo_" + title2 + ".xls");
