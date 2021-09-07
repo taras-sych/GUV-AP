@@ -8,7 +8,7 @@
 +	proteins. In addition, protein binding is 	+
 +	evaluate based on the fluorescence			+
 +	intensity method. 							+
-+   Version  4.0 2017							+
++   Version  4.0 2021							+
 +												+	
 +++++++++++++++++++++++++++++++++++++++++++++++++
 
