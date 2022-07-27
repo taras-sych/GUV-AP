@@ -62,7 +62,7 @@ ttt=tc;
 dir1 = dir + "_" + year +"_" + month + "_" + dayofMonth + "_" + hour + "_" + minute + "_" + second + "_Result" ;
 File.makeDirectory(dir1);
 
-dir2 = dir1 + "ROI_Sets\\" ;
+dir2 = dir1 + "ROI_Sets" ;
 File.makeDirectory(dir2);
 //----------------------------------------------------------------------------------------------------------
 
