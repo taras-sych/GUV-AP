@@ -59,7 +59,7 @@ ttt=tc;
 
 //----------------Create directory for data output----------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------
-dir1 = dir + "_" + year +"_" + month + "_" + dayofMonth + "_" + hour + "_" + minute + "_" + second + "_Result\\" ;
+dir1 = dir + "_" + year +"_" + month + "_" + dayofMonth + "_" + hour + "_" + minute + "_" + second + "_Result" ;
 File.makeDirectory(dir1);
 
 dir2 = dir1 + "ROI_Sets\\" ;

@@ -1,0 +1,14 @@
+ImageJ version: 2.3.0/1.53q
+ 
+		GUV detection parameters
+ 
+Channel for ROI definition: Gb3_Fluo
+Thresholding for ROIs: tc = 0.2
+Method for GUV detection: Fit_Circle
+Circular check
+Circle extension coefficient: ce = 1.2
+ 
+		Calculation paramters
+ 
+Angle step: alpha_step = 6 deg
+ 
