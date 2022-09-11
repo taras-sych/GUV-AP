@@ -12,7 +12,7 @@ oops = true;
 while (oops == true){
 
 	Dialog.create("Parameters");
-	Dialog.addChoice("protein channel", newArray(1,2));
+	Dialog.addChoice("protein channel", newArray(2,1));
 	Dialog.addNumber("threshold:", 0.1);
 	Dialog.show();
 	prot_chan = Dialog.getChoice();
@@ -234,7 +234,7 @@ if (Task ==  "Interface sizes"){
 	selectWindow ("LecA_0");
 	waitForUser("Define threshold of non-interface");
 	Dialog.create("Interface thresholds:");
-	Dialog.addNumber("GUV bottom:", 395);
+	Dialog.addNumber("GUV bottom:", 175);
 	Dialog.show();
 	bottom = Dialog.getNumber();
 
