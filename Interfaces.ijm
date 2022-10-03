@@ -236,8 +236,13 @@ if (Task ==  "Interface sizes"){
 	waitForUser("Define threshold of non-interface");
 	Dialog.create("Interface thresholds:");
 	Dialog.addNumber("GUV bottom:", 175);
+	items = newArray("below threshold", "above threshold");
+	Dialog.addRadioButtonGroup("Interfaces are", items, 2, 2, "above threshold");
 	Dialog.show();
 	bottom = Dialog.getNumber();
+	choice_th = Dialog.getRadioButton();
+	print(choice_th);
+
 
 
 	
@@ -329,17 +334,32 @@ if (Task ==  "Interface sizes"){
 	while (j<lengthOf(Profile_array)){
 
 		int_counter = 0;
-
-		if (Profile_array[j] == Profile_array[j]){
-
+		
+		if (choice_th == "above threshold"){
+			if (Profile_array[j] == Profile_array[j]){
 			
-			
-			while (Profile_array[j] == Profile_array[j] && j< (lengthOf(Profile_array)-1)){
-				int_counter ++;
-				j++;
+				while (Profile_array[j] == Profile_array[j] && j< (lengthOf(Profile_array)-1)){
+					int_counter ++;
+					j++;
+				}
+				int_array = Array.concat(int_array,int_counter);
 			}
-			int_array = Array.concat(int_array,int_counter);
+
 		}
+		
+		if (choice_th == "below threshold"){
+			if (Profile_array[j] != Profile_array[j]){
+			
+				while (Profile_array[j] != Profile_array[j] && j< (lengthOf(Profile_array)-1)){
+					int_counter ++;
+					j++;
+				}
+				int_array = Array.concat(int_array,int_counter);
+			}
+
+		}
+
+		
 
 
 
