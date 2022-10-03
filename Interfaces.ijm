@@ -1,6 +1,7 @@
 
 
-
+array_int_length_GUV_R = newArray;
+sum_of_ints_as_fr_of_circ = newArray;
 
 //---------Data input--------------
 ce = 1.2;
@@ -174,7 +175,7 @@ close();
 
 getDateAndTime(year, month, dayofWeek, dayofMonth, hour, minute, second, msec);
 
-dir1 =  dir + " " + year +"." + month + "." + dayofMonth + " " + hour + "." + minute + "\\" ;
+dir1 =  dir + " " + year +"_" + month + "_" + dayofMonth + " " + hour + "_" + minute + "\\" ;
 File.makeDirectory(dir1);
 
 
@@ -329,11 +330,11 @@ if (Task ==  "Interface sizes"){
 
 		int_counter = 0;
 
-		if (Profile_array[j] != Profile_array[j]){
+		if (Profile_array[j] == Profile_array[j]){
 
 			
 			
-			while (Profile_array[j] != Profile_array[j] && j< (lengthOf(Profile_array)-1)){
+			while (Profile_array[j] == Profile_array[j] && j< (lengthOf(Profile_array)-1)){
 				int_counter ++;
 				j++;
 			}
@@ -352,17 +353,49 @@ if (Task ==  "Interface sizes"){
 
 	line = "GUV " + i+1 + "\t\t" + R[i] + "\t\t";
 
+	int_length_1 = 0;
 	for (j=0; j<lengthOf(int_array); j++){
 		line = line + "\t\t" + int_array[j] * alpha_step;
+		
+		int_length_1 = int_length_1 + int_array[j] * alpha_step/360;
+		
+		array_int_length_GUV_R = Array.concat(array_int_length_GUV_R, int_array[j]/R[i]);
+
 	}
 
 	print(xl, line);
+	sum_of_ints_as_fr_of_circ = Array.concat(sum_of_ints_as_fr_of_circ, int_length_1);
+		}
+ 
 	
 }
-	
-}//end of calculation cycle
-
 File.close(xl);
+
+xl1=File.open(dir1+ File.separator+"Sum interfaces.xls");
+for (iii = 0; iii < lengthOf(sum_of_ints_as_fr_of_circ); iii++) {
+	if (array_int_length_GUV_R[iii] != 0) {
+		print(xl1, array_int_length_GUV_R[iii]);
+	}
+}
+
+File.close(xl1);
+
+xl1=File.open(dir1+ File.separator+"Norm interfaces.xls");
+for (iii = 0; iii < lengthOf(array_int_length_GUV_R); iii++) {
+	if (array_int_length_GUV_R[iii] != 0) {
+
+		print(xl1, array_int_length_GUV_R[iii]);
+	}
+}
+
+File.close(xl1);
+	
+//end of calculation cycle
+
+
+
+
+
 
 
 
