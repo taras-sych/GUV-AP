@@ -33,7 +33,7 @@ getDateAndTime(year, month, dayofWeek, dayofMonth, hour, minute, second, msec);
 //----------------------------------------------------------------------------------------------------------
 	tc = 0.1;				// threshold coeffitient for GUV detection
 
-	min_detected =100; 		// minimal area of detectede particles in pixels
+	min_detected =1000; 		// minimal area of detectede particles in pixels
 
 	circle_extension = 1.2; 				// circle extension
 
