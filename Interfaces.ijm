@@ -389,7 +389,7 @@ if (Task ==  "Interface sizes"){
  
 	
 }
-File.close(xl);
+//File.close(xl);
 
 xl1=File.open(dir1+ File.separator+"Sum interfaces.xls");
 for (iii = 0; iii < lengthOf(sum_of_ints_as_fr_of_circ); iii++) {
