@@ -13,10 +13,13 @@ oops = true;
 while (oops == true){
 
 	Dialog.create("Parameters");
-	Dialog.addChoice("protein channel", newArray(2,1));
+	Dialog.addChoice("Use for segmentation: ", newArray("1", "2", "sum"));
+	Dialog.addChoice("Use to study: ", newArray("1", "2", "both"));
 	Dialog.addNumber("threshold:", 0.1);
 	Dialog.show();
-	prot_chan = Dialog.getChoice();
+	seg_chan = Dialog.getChoice();
+	study_chan = Dialog.getChoice();
+
 	tc = Dialog.getNumber();
 	user_is_happy = "NO";
 
@@ -28,27 +31,33 @@ while (oops == true){
 	run("Duplicate...", "title=raw_data_1 duplicate");
 	run("Split Channels");
 
-	if (prot_chan == "1.0"){
-		selectWindow("C2-raw_data_1");
-		rename ("membrane_0");
-
+	if (seg_chan == "1"){
 		selectWindow("C1-raw_data_1");
-		rename("LecA_0");
+		run("Duplicate...", " ");
+		rename ("segmentation_channel");
+
 	}
+	
+	if (seg_chan == "1"){
+		selectWindow("C2-raw_data_1");
+		run("Duplicate...", " ");
+		rename ("segmentation_channel");
+
+	}
+	
+	if (seg_chan == "sum"){
+		imageCalculator("Add create", "C1-raw_data_1","C2-raw_data_1");
+		selectImage("Result of C1-raw_data_1");
+		rename ("segmentation_channel");
 		
-	if (prot_chan == "2.0"){
-		selectWindow("C1-raw_data_1");
-		rename ("membrane_0");
 
-		selectWindow("C2-raw_data_1");
-		rename("LecA_0");
 	}
 
-	selectWindow ("LecA_0");
-	run("Smooth");
-	run("Smooth");
-	run("Smooth");
-	run("Smooth");
+	
+	selectWindow("C1-raw_data_1");
+	
+	selectWindow("C2-raw_data_1");
+
 			
 	while (user_is_happy == "NO"){
 		
@@ -58,7 +67,7 @@ while (oops == true){
 			roiManager("Delete");
 		}
 
-	selectWindow("membrane_0");
+	selectWindow("segmentation_channel");
 	run("Duplicate...", "title=membrane");
 
 	selectWindow ("membrane");
