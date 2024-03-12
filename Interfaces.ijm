@@ -38,7 +38,7 @@ while (oops == true){
 
 	}
 	
-	if (seg_chan == "1"){
+	if (seg_chan == "2"){
 		selectWindow("C2-raw_data_1");
 		run("Duplicate...", " ");
 		rename ("segmentation_channel");
